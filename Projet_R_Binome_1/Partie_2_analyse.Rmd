@@ -1,0 +1,559 @@
+---
+title: "Partie_2_Analyse"
+author: "KABASSINA Gnimdou Ange & Ibrahima GNING"
+date: '2022-06-27'
+output: 
+  pdf_document: 
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,include=TRUE, warning=FALSE)
+```
+
+# Introduction 
+
+Dans les pays en développement, les enquêtes auprès des ménages sont la source privilégiée pour produire des indicateurs de suivi des conditions de vie des populations. c'est dans ce contexte que dans l'espace UEMOA (Union Economique et Monétaire Ouest Africaine) pour le suivi et l’évaluation de la pauvreté et des conditions de vie des ménages dans chacun des pays membres, il a été mis en place l'Enqueête Harmonisée sur les Conditions de vie des Ménages. Et c'est l'analyse des données receuillies dans le cadre de cette enquête au Sénégal qui fait l'objet de cette étude. La présente partie du travail consiste à porter des analyses descriptives sur un échantillon de 13 817 indivudus sélectionnés dans la précédente partie. Nos différentes analyses porterons essentiellement sur les caractéristiques sociodémographiques et la situation en matière d'éducation au seins de la population sénégalaise résidente.
+
+
+```{r}
+# Chargement de la table de données 
+## Appel de la bibliothèque nécessaire pour ouvrir des ficher du format dta
+library(haven) 
+library(dplyr)
+
+## Définissons le chemin d'accès à la tables de données
+path <- "C:\\Users\\HP ProBook\\Documents\\Mes Cours ISEP2\\R\\Projet\\Base de données"
+
+## importation des données  
+df <- read_dta(paste(path,"Base_projetf.dta",sep="\\")) # tables de donnée apurée
+head(df)
+df <- data.frame(df)
+```
+
+
+```{r Importatation des données}
+## recodons les variables
+library(labelled)
+variables <- c("Sexe", "Situation_Matrimoniale", "Nationalite"
+               ,"Ne_dans_sa_localite_de_residence","Localite_d_origine_des_migrants", "Principale_cause_de_migration", "Peut_lire_français"              
+              ,"Peut_lire_la_langue_locale","Peut_lire_une_autre_langue","Fait_une_ecole_formelles","Raisons_non_frequentation_EF"    
+              ,"Fait_une_ecole_non_formelle","Gerant_de_l_ecole" ,"Resultat_2019_2020","Raisons_d_abandon_de_l_ecole","Diplome_le_plus_eleve"           
+              ,"Insuffisance_livres_fornitures", "Insuffisance_tablesb_equipements","Absenteisme_enseignants_greve"   
+              ,"Enseignement_pas_satisfaisant", "Effectifs_plethoriques","Insuffisance_d_enseignants"      
+             ,"Manque_de_toilettes", "Frequence_des_cotisations", "Salle_de_classe_en_mauvais_etat" )
+df[variables] <- to_factor(df[variables])
+```
+
+
+# I. Caractéristiques sociodémographiques
+
+
+Dans cette section, on étudiera les caractéristiques sociodémographiques de notre population d'étude à travers des attributs comme la situation matrimoiale,l'âge,l'âge au premier mariage,l'oigine et la principale cause de migration.Le sexe et la nationalité des personnes nous aideront pour des analyses par strate.
+
+
+## I.1 Sexe
+
+
+```{r}
+
+# fréquences
+knitr::kable(prop.table(table(df["Sexe"])), align = "c")
+
+# graphique en secteur
+library(plotrix)
+pie3D(table(df["Sexe"]),labels = c("Homme","Femme") ,col = c("aquamarine","pink"), main = "Sexe")
+
+```
+
+
+L'analyse du graphique ci-dessus confirme la tendance démographique de la sous région avec une plus grande proportion de femmes. En effet,les femmes occupent 58,5 % de notre population d'étude.
+
+
+## I.2 Situation matrimoniale 
+
+
+```{r}
+## situation Matrimoniale
+### Fréquences
+knitr::kable(prop.table(table(df["Situation_Matrimoniale"])), align = "c")
+### diagramme en baton 
+barplot(prop.table(table(df["Situation_Matrimoniale"])),xlab="Situation matrimoniale",ylab="Effectif", las=3, col="plum")
+
+```
+
+
+Le graphique ci-dessus montre que sur notre échantillon plus de la moitié des individus (59,53 %) sont célibataires et qu'il y a très peu de personnes en union libres comme séparés. Quant aux mariés, ils sont plus monogames que polygames.Aussi,constate t-on que les veufs et les divorsés sont moins présents que les célibatires et les mariés mais ils sont plus nombreux que les divorcés et les séparés.
+
+
+
+```{r}
+
+#Regardons la variable situations matrimoniale en relation avec le sexe
+tab2 <- table(df[,"Situation_Matrimoniale"],df[,"Sexe"])
+knitr::kable(tab2, align = "c")
+
+#Represenation graphique
+
+barplot(tab2,main = "Situarion matrimoniale en fonction du sexe",legend.text = c("Célibataire","Marié monogame", "Marié polygame","Union libre","Veuf(ve)", "Divorcé(e)","Séparé(e)"))
+
+
+chisq.test(tab2) # TEST DE KHI2
+```
+
+Pour les femmes de même que les hommes,les célibatires et les mariés dominent en nombre alors que les séparés  et les personnes en unions libres sont moins nombreux.
+Cependant force est de remarquer qu'il y a plus de veuves que de veuf (96,35% des veufs sont des veuves). tandance qui semble se perpétuer parmis les divorcés nous poussant à suspecter un lien entre la situation matrimoniale et le sexe.
+Suspussion qui est confirmée par un test d'indépendance de Khi2 (p-value < 2.2e-16 < 0.05 = seuil de significativité)
+
+
+## I.3 Age
+
+
+```{r}
+
+## Age 
+### statististiques descriptives 
+knitr::kable(summary(df["Age"]), align = "c")
+
+### histogramme
+library(ggplot2)
+#### histogramme classique
+ggplot(df, aes(x=Age)) + 
+  geom_histogram(color="black", fill="green") +
+  theme(legend.position="top")+
+  scale_x_continuous(breaks=seq(0,110,10), limits=c(0,110))
+
+#### Histogramme par sexe
+ggplot(df, aes(x=Age, color=Sexe, fill=Sexe)) +
+  geom_histogram(position="dodge") +
+  theme(legend.position="top")+
+  scale_color_brewer(palette="Paired") + 
+  theme_classic()+
+  scale_x_continuous(breaks=seq(0,110,10), limits=c(0,110))
+
+```
+
+
+Notre population est jeune et composée de personnes âgées entre 4 et 78 ans. Plus de la moitié de cette population soit les trois quart pour être précis ont moins de 37 ans.Le second graphique nous montre que les femmes vivent généralement plus longtemps que les hommes.
+
+
+
+## I.4 Age au premier mariage
+
+
+```{r}
+
+## Age au premier mariage
+### statististiques descriptives 
+knitr::kable(summary(df["Age_au_premier_mariage"]), align = "c")
+
+## description de age moyen de marriage par sexe
+fem <- df[which(df["Sexe"] == "Féminin"),]
+hom <- df[which(df["Sexe"] == "Masculin"),]
+print("Age au premier mariage chez les femmes") 
+knitr::kable(summary(fem["Age_au_premier_mariage"]), align = "c")
+print("Age au premier mariage chez les hommes") 
+knitr::kable(summary(hom["Age_au_premier_mariage"]), align = "c")
+
+
+
+### histogramme
+library(ggplot2)
+#### histogramme classique
+ggplot(df, aes(x=Age_au_premier_mariage)) + 
+  geom_histogram(color="black", fill="green") +
+  theme(legend.position="top")+
+  scale_x_continuous(breaks=seq(0,70,10), limits=c(0,70))
+
+#### Histogramme par sexe
+ggplot(df, aes(x=Age_au_premier_mariage, color=Sexe, fill=Sexe)) +
+  geom_histogram(position="dodge") +
+  theme(legend.position="top")+
+  scale_color_brewer(palette="paired") + 
+  theme_classic()+
+  scale_x_continuous(breaks=seq(0,70,10), limits=c(0,70))
+
+
+```
+
+
+Il ressort de l'analyse des graphiques et des chiffres ci-dessus que les gens se marient (pour la 1ère fois) en moyenne à 22 ans. Cet âge moyen est plus bas de 2 ans chez les femmes (20 ans) alors qu'il est de 26 ans pour les hommes soit 4 ans de plus. Cela nous permet avec l'appuis du graphique ci-après et des résultats du test de student (p-value < 2.2e-16  <0.05 = seuil de significativité) d'affirmer que les femmes se marient généralement plus tôt que les hommes.
+Cependant force est de remarquer que près d'un quart des personnes qui sont mariés, l'ont fait avant leur 18 ans âge légal du mariage pour les filles comme les garçons selon la Convention internationale des droits de l'enfant.
+Par aillers, on remarque que la situation est plus alarmante chez les femmes où 25% se sont marié avant 17 ans. En se référant à l'âge légal du mariage au Sénégal qui est de 16 ans pour les femmes et 18 ans chez les hommes puis aux normes internationales, on peut dire que le Sénégal est encore à la traîne en matière d'érradication des mariages précosses en général et chez la femme surtout.
+
+
+
+```{r}
+
+boxplot(df$Age_au_premier_mariage ~ df$Sexe,col="skyblue",
+        main="Age au premier mariage selon l'Age",
+        ylab="Age au premier mariage",
+       xlab="Sexe" )
+
+# Faisons un test de student pour comparer l'âge moyen de mariage chez les filles et les garçons afin de voir si ces 2 variables sont liées 
+
+t.test(df$Age_au_premier_mariage ~ df$Sexe)
+
+```
+
+
+## I.5 Migration 
+
+
+### I.5.1 Origine des migrants
+
+```{r}
+## origine des migrants
+### Fréquences
+prop.table(table(df["Localite_d_origine_des_migrants"]))
+### diagramme en baton 
+barplot(prop.table(table(df["Localite_d_origine_des_migrants"]))
+        ,xlab="Localite d'origine des migrants",ylab="Effectif",col = "red", las = 3)
+
+```
+
+
+Dans notre population,pour une localité données, les principaux émigrés proviennent du milieu rural, de la capitale et de la zone urbaine.On y trouve des non sénégalais mais en très faible nombre.
+Parmi ces dernières,les Gambiens,les bissau guinéens,les ivoiriens et les personnes provenant d'autres continents sont les plus representés.
+
+
+
+### I.5.2 Principales cause de migration 
+
+
+```{r}
+
+## Principale cause de migration
+### Fréquences
+prop.table(table(df["Principale_cause_de_migration"]))
+### diagramme en baton 
+barplot(prop.table(table(df["Principale_cause_de_migration"]))
+        ,xlab="Principale cause de migration",ylab="Effectif",col = "purple", las = 3)
+
+```
+
+
+La liste des principales causes de migration est longue mais la principale est le mariage. Mis à part cela,la plupart des personnes se déplacent pour chercher du travil,accompagner leur parent,rejoindre leur famille, étudier ou chercher de meilleures opportunuités.
+
+
+
+# II. Education
+
+Le but de cette partie, est évaluer le secteur éducatif de notre population.
+
+
+## II.1 Accècibilité aux écoles
+
+
+```{r}
+
+## Accècibilité aux écoles
+acces <- c("Fait_une_ecole_formelles","Fait_une_ecole_non_formelle")
+for (x in acces) {
+  ### Fréquences
+  print(prop.table(table(df[which(df$Age < 16 & df$Age >= 6 ),x])))
+  pie3D(table(df[which(df$Age < 16 & df$Age >= 6 ),x]),labels = c("Oui","Non") ,col = c("aquamarine","pink"), main = x)
+}
+```
+
+
+On peut lire dans l'article premier de la Loi 2004-37 du 15 décembre 2004 modifiant et complétant la Loi d'orientation de l'Éducation nationale no 91-22 du 16 février 1991 du Sénégal ce qui suit : "Il est fait obligation aux parents, dont les enfants atteignent l'âge de 6 ans, de les inscrire dans une école publique ou privée. Les parents sont tenus de s'assurer de l'assiduité de leurs enfants jusqu'à l'âge de 16 ans."
+En référence a cette loi et avec les résultat présenté par les graphiques ci-dessus, nous pouvons dire que la situation dans notre population d'étude est critique car encore 45%  des enfants de cette tranche d'âge n'ont pas accès à une formation formelle. Mais qu'est-ce-qui explique cela ?
+
+
+## II.2 Raisons de non Fréquentation 
+
+```{r}
+
+### Fréquences
+y1 <- data.frame(prop.table(table(df["Raisons_non_frequentation_EF"])))
+print(y1)
+### diagramme en baton 
+ggplot(data=y1, aes(x=Freq, y=Raisons_non_frequentation_EF)) +
+  geom_bar(stat="identity", fill="steelblue")+ theme_minimal()
+
+barplot(prop.table(table(df["Raisons_non_frequentation_EF"]))
+        ,xlab="Raisons de non frequentation d'une école formelle",ylab="Effectif",col = "turquoise", las = 3)
+
+```
+
+
+Le graphique ci-dessus tente d'apporter une réponse à la précedente question.
+On peut y voir que pour le compte de l'année scolaire 2019-2020, La principale raison de non frquentaton de l'école était la COVID-19, ce qui est assez intuitif vu que le monde traversait une crise sanitaire sans précédent. Par contre on relève d'autres raisons entre autres : le refus de la famille,les travaux domestiques ,le manque d'établissements ou l'éloignement de ces derniers etc.
+
+
+
+## II.3 Résultat pour l'année scolaire 2019-2020
+
+
+```{r}
+
+y1 <- data.frame(prop.table(table(df["Resultat_2019_2020"])))
+print(y1)
+### diagramme en baton 
+ggplot(data=y1, aes(x=Freq, y=Resultat_2019_2020)) +
+  geom_bar(stat="identity", fill="pink")+ theme_minimal()
+
+```
+
+
+Certes,il y a des redoublements,des abandons,des renvois mais le taux des élèves /étudiants qui ont passé en classe supérieure est très élevé. L'enseignement souffre d'une part des manquements nonobstant que les résultats de l'année scolaire 2019-2020 sont très satisfaisants.
+
+
+
+## II.4 Raison d'abandon des classe
+
+Bien qu'il y est eu peu d'abandan au cours de l'année scolaire 2019-2020, il reste légitime de se questionner sur les causes de ces abandons.
+Ainsi, il ressort que La grossesse,la difficulté des études ,le manque de moyens financiers,les travaux domestiques et les travaux champêtres sont des raisons qui poussent à l'abandon des classes.
+Par ailleurs, on note qu'aucune fille n'a abandonné les classes sous prétexte qu'elle était une fille, ce qui témoigne d'une avancé en matière d'émancipation de la femme et de lutte contre le sexisme.
+
+
+```{r}
+
+y1 <- data.frame(prop.table(table(df["Raisons_d_abandon_de_l_ecole"])))
+print(y1)
+### diagramme en baton 
+ggplot(data=y1, aes(x=Freq, y=Raisons_d_abandon_de_l_ecole)) +
+  geom_bar(stat="identity", fill="aquamarine")+ theme_minimal()
+
+```
+
+## II.5 Principales difficultés rencontrées dans le cadre de la scolarité
+
+
+Il est important de noter que dans le cadre scolaire,on fait face à des problèmes tels que l'insuffisance des fournitures scolaires,des problèmes au niveau des équipements scolaires et des problèmes au niveau des enseignants.
+Cependant, on remarque que hormis l'insuffisance des livres et fournitures scolaire, plus de 72% des personnes ayant été à l'école ne rencontrent pas les autre autres difficultés
+
+
+```{r}
+
+## Principales difficultés rencontrées dans le cadre de la scolarité
+difficulte <- c("Insuffisance_livres_fornitures", "Insuffisance_tablesb_equipements","Absenteisme_enseignants_greve"   
+                ,"Enseignement_pas_satisfaisant", "Effectifs_plethoriques","Insuffisance_d_enseignants"      
+                ,"Manque_de_toilettes", "Frequence_des_cotisations", "Salle_de_classe_en_mauvais_etat")
+
+for(x in difficulte){
+  print(prop.table(table(df[x])))
+  pie3D(table(df[x]),labels = c("Oui","Non") ,col = c("aquamarine","pink"), main = x)
+}
+
+```
+
+
+
+# III. Caractéristiques sociodémographiques et Education
+
+
+La présente section va mettre en rapport certaines caractéristiques sociodémographoques et l'éducation de notre population d'étude.
+
+
+## III.1 Niveau d'alphabétisation suivant le sexe 
+
+
+```{r}
+
+# Abordons le niveau d'alphabétisation selon le sexe 
+
+# croisons sexe et peut_lire_français 
+
+tab5 <- table(df$Peut_lire_français,df$Sexe)
+print(tab5)
+
+library("questionr")
+print(cprop(tab5))
+
+# Croisons sexe et peut ?crire en fran?ais 
+
+tab6 <- table(df$Peut_ecrire_français,df$Sexe)
+print(cprop(tab6))
+
+# croisons sexe et comprendre un texte en fran?ais 
+
+ggplot(df) +
+  aes(x = comprendre_un_texte_en_français, y = Sexe) +
+  geom_count(colour="hotpink", alpha=.2) +
+  xlab("Peut comprendre un texte en français") +
+  ylab("Sexe")+labs(size="effectifs")
+
+
+```
+
+
+Le premier tableau montre que la majeure partie de notre population ne sait pas lire le français aussi bien les femmes que les hommes.
+Ce constat est pratiquement le même quand on regarde ceux qui savent écrire ou comprendre la langue de molière.
+
+
+
+## III.2 Accès à l"école suivant le sexe
+
+
+```{r}
+
+# Croisons sexe et fait_une_ecole_formelle
+
+tab11 <- table(df$Sexe,df$Fait_une_ecole_formelles)
+print(tab11)
+
+#Representation 
+library(viridis)
+mosaicplot(tab11,main = "Frequentation de l'école formelle en fonction du sexe", col = viridis(2) )
+
+chisq.test(tab11) #test d KHI2
+
+
+```
+
+
+Il ressort que les personnes qui n'ont pas accès aux écoles formelles sont en nombre important comparé à ceux qui en ont aussi bien chez les filles que chez les garçons.
+Ces faibles divergences entre le groupe des filles et celui des garçons est confirmée par un test de Khi2 qui rejette l'existence de dépendance entre ces deux variables.
+
+
+
+## III.3 Niveau d'éducation suivant le sexe
+
+
+```{r}
+
+#croisons sexe et diplome le plus ?lev?
+
+tab12 <- table(df$Diplome_le_plus_eleve,df$Sexe)
+print(tab12)
+
+ggplot(df) +
+  aes(x = Sexe, y = Diplome_le_plus_eleve) +
+  geom_count(colour="green", alpha=.2) +
+  xlab("Sexe") +
+  ylab("Diplome le plus élévé")+labs(size="effectifs")
+
+
+```
+
+
+En matière de niveaux d'instruction la tendance est la même qu'on soit du côté des homme que de celui des femmes. La majeure partie de la population n'a aucun diplome.Et dans l'ensemble des gens qui ont reçu une éducation ont arrété en ayant que le CEFE. Bref, il y a peu de personnes ayant des diplomes d'études supérieur.
+
+
+
+
+# IV. Création d'indicateur : Indicateur de maîtrise d'une langue (IML)
+
+
+L'un des objectifs de notre étude comme mentionné en début de  partie 1 est d'évaluer le niveau d'alphabétisation en quantifiant et présentant le niveau de maîtrise d'une lanque. Pour se faire nous allons élaborer un indice synthétique de maîtrise de langue qui sera une moyenne géométrique d'indices préablement calculés.
+
+
+## IV.1 Etape 1 : incice simple 
+
+La prémière étape pour élaborer notre indicateur consiste à calculer des indices simple  qui sont la proportion de personnes pouvant lire, comprendre, et écrire un petit texte en une langue.
+
+
+```{r}
+
+## Etape 1 indice simple = proportion de oui pour les variables langue
+langue <- c("Peut_lire_français" , "Peut_lire_la_langue_locale","Peut_lire_une_autre_langue",
+            "Peut_ecrire_français", "Peut_ecrire_la_langue_locale","Peut_ecrire_une_autre_langue",
+            "comprendre_un_texte_en_français","comprendre_texte_langue_locale", "comprendre_texte_en_autre_langue" )
+indices_s <- c()
+for (x in langue) {
+  y <- data.frame(prop.table(table(df[x])))
+  indices_s <- c( y[which(y[x] == "Oui" | y[x] == 1 ),2],indices_s)
+}
+Indice <- data.frame(indices_s)
+row.names(Indice) <- langue
+
+```
+
+
+## IV.2 Etape 2 : IML pour chaque groupe de langue
+
+Une fois les indices simple calculés, la prochaine étape consiste à calculer un indice synthétique pour chaque groupe de langue qui n'est autre que la moyenne géométrique des proportions de personnes pouvant lire, comprendre et écrire cette (ces) langues. Cet indicateur sera nommé Indice de Maitrise de la langue IML en question. Dans notre cas nous parlerons d'indice de maitrise du français, de la langue locale, des autres langues.
+
+
+```{r}
+## Etape 2 : IML pour chacune des langues 
+## IML = moyenne géométrique (indices simples de l'étape 1)
+### Regrouper les variables par langue
+Francais <- c("Peut_lire_français","Peut_ecrire_français","comprendre_un_texte_en_français")
+Langue_locale <- c("Peut_lire_la_langue_locale","Peut_ecrire_la_langue_locale","comprendre_texte_langue_locale")
+Autre_langues <- c("Peut_lire_une_autre_langue","Peut_ecrire_une_autre_langue","comprendre_texte_en_autre_langue")
+
+### calcul de l'IML pour chaque groupe de langue
+library(forestmangr)
+IML <- data.frame (c(pow(Indice[Francais[1],]* Indice[Francais[2],]*Indice[Francais[3],],1/length(Francais)),
+         pow(Indice[Langue_locale[1],]*Indice[Langue_locale[2],]*Indice[Langue_locale[3],],1/length(Langue_locale)),
+         pow(Indice[Autre_langues[1],]*Indice[Autre_langues[2],]*Indice[Autre_langues[3],],1/length(Autre_langues))))
+
+rownames(IML) <- c("Français", "Langue locale", "Autre langues") 
+colnames(IML) <- "Indice_de_maîtrise_de_langue"
+```
+
+
+## IV. Etape 3 : Indice Globale de Maîtrise de langue
+
+La troisième et dernière étape consiste à quantifier  le niveau de maîtrise d'au moins une langue à travers l'Indice Globale de Maîtrise de langue IGML. Cet indice se calcule comme le précédent IML à la différence qu'ici les indices simples sont remplacés par les IML précédement calculés.
+
+```{r}
+
+## Etape 3 : Indice globale de maîtrise de langue IGML
+## IGML = moyenne géométrique (IML de l'étape 2)
+IGML <- pow(IML[1,]*IML[2,]*IML[3,], 1/length(IML))
+print(IGML)
+
+```
+
+
+## IV.4 Interprétation de l'indice 
+
+### IV.4.1 Indice simple
+
+Les indices simples calculé dans la phase 1 ne sont rien d'autre que la part de la population qui sait lire, écrire ou comprendre un texte dans une langue spécifique 
+
+```{r}
+
+### visualisation avec ggplot2
+ggplot(data=Indice, aes(x= row.names(Indice),y=indices_s)) +
+  geom_bar(stat = "identity",fill="cyan")+
+  geom_text(aes(label= round(indices_s*100)), vjust=1.6, color="black", size=3.5)+
+  theme_minimal()
+
+```
+
+Le graphique ci-dessus montre que la populalution étudiée comprend plus de textes en d'autres langues qu'en français.
+
+
+### IV.4.2 IML
+
+la population qui sait lire, écrire et comprendre un texte dans une langue spécifique
+
+A partir de ces valeurs nous allons définir des intervalles d'interprétation de l'IML:
+
+- IML inférieur à 0.25 : très mauvaise maitrîse de la langue
+
+- IML compris entre 0.25 et 0.5 : mauvaise maîtrise de la langue
+
+- IML compris entre 0.5 et 0.75 : bonne maîtrise de la langue 
+
+- IML supérieur à 0.75 : très bonne maîtrise de la langue 
+
+
+```{r}
+
+### visualisation avec ggplot2
+ggplot(data=IML, aes(x= row.names(IML),y=Indice_de_maîtrise_de_langue)) +
+  geom_bar(stat = "identity",fill="cyan")+
+  geom_text(aes(label= round(IML[,1],2)), vjust=1.6, color="black", size=3.5)+
+  theme_minimal()
+
+```
+
+Le graphique ci-dessus montre que sur notre échantillon, on a une en général un mauvaise maîtrise des langues.
+
+### IV.4.3 IGML
+
+l'IGML peut être perçue comme la part de la population qui sait lire, écrire ou comprendre un texte dans une langue. Et il est très faible pour notre échantillon.
+
+
+```{r}
+
+print(IGML)
+```
+
+
